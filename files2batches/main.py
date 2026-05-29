@@ -69,7 +69,7 @@ def get_exif_date_exifread(file):
         tags = exifread.process_file(f)
         date_tag = tags.get('EXIF DateTimeOriginal')
         if date_tag:
-            print(f"EXIF date for {file}: {date_tag}")
+            # print(f"EXIF date for {file}: {date_tag}")
             return datetime.strptime(str(date_tag), "%Y:%m:%d %H:%M:%S")
 
 def file_date(file, datesource):

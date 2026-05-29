@@ -1,5 +1,9 @@
 # files2batches
-Group files into sorted batches (using filenames, mtime or metadata). 
+
+Group files into sorted batches (using filenames, mtime, or metadata).
+
+Initially, I had hundreds of vacation photos taken with two smartphones. One of them had two different camera apps, so the photos used different naming conventions. The photos were copied to my laptop on different dates. I wanted to upload all of them to Telegram from a low-memory machine (no more than 70 photos at a time) in the same order they were taken.
+
 
 ## Installation
 ~~~
@@ -8,8 +12,8 @@ pipx install git+https://github.com/yaroslaff/files2batches.git
 
 ## Usage examples
 ~~~
-# very basic, group files (recursively) into directores batch-NNN, 100 files in each
-# default sort order (datetime from metadata if available, otherwise from guessed from filename, and mtime)
+# Very basic: group files (recursively) into directories batch-NNN, 100 files each
+# Default sort order: datetime from metadata if available, otherwise guessed from filename, then mtime
 files2batches -r /tmp/test/
 ~~~
 
