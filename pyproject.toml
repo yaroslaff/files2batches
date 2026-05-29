@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling>=1.27.0", "wheel"]
+
+build-backend = "hatchling.build"
+
+[project]
+name="fparts"
+# license = "MIT"
+license = { file = "LICENSE" }
+dynamic = [ "version" ]
+keywords = [ "fparts", "files", "grouping", "sorting"]
+
+dependencies = [
+  'python-magic',
+  'Pillow',
+  'exifread',
+]
+authors = [
+  { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
+]
+description = "File parting/grouping tool (like fpart): all you need for grouping and sorting files"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",    
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Security :: Cryptography"
+]
+
+[project.urls]
+Homepage = "https://github.com/yaroslaff/fparts"
+Issues = "https://github.com/yaroslaff/fparts/issues"
+
+
+[project.scripts]
+fparts = "fparts.main:main"
+
+[tool.hatch.version]
+path = 'fparts/__about__.py'
+
+[tool.hatch.metadata]
+# license-files = ["LICENSE"]
+
+[tool.hatch.envs]
+py38 = { python = "3.8" }
+py39 = { python = "3.9" }
+py310 = { python = "3.10" }
+py311 = { python = "3.11" }
+py312 = { python = "3.12" }
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+]
+
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "coverage report -m",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+
+
