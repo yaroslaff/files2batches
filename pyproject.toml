@@ -4,21 +4,20 @@ requires = ["hatchling>=1.27.0", "wheel"]
 build-backend = "hatchling.build"
 
 [project]
-name="fparts"
+name="files2batches"
 # license = "MIT"
 license = { file = "LICENSE" }
 dynamic = [ "version" ]
-keywords = [ "fparts", "files", "grouping", "sorting"]
+keywords = [ "files2batches", "files", "grouping", "sorting", "batches", "exif", "metadata", "magic", "jpg", "jpeg", "mp4", "video", "photo", "image", "media" ]
 
 dependencies = [
   'python-magic',
-  'Pillow',
   'exifread',
 ]
 authors = [
   { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
 ]
-description = "File parting/grouping tool (like fpart): all you need for grouping and sorting files"
+description = "Group files into batches based on name/date/size (can use metadata)"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -29,20 +28,18 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",    
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Topic :: Security :: Cryptography"
 ]
 
 [project.urls]
-Homepage = "https://github.com/yaroslaff/fparts"
-Issues = "https://github.com/yaroslaff/fparts/issues"
+Homepage = "https://github.com/yaroslaff/files2batches"
+Issues = "https://github.com/yaroslaff/files2batches/issues"
 
 
 [project.scripts]
-fparts = "fparts.main:main"
+files2batches = "files2batches.main:main"
 
 [tool.hatch.version]
-path = 'fparts/__about__.py'
+path = 'files2batches/__about__.py'
 
 [tool.hatch.metadata]
 # license-files = ["LICENSE"]

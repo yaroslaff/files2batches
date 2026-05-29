@@ -10,7 +10,6 @@ import exifread
 from collections import namedtuple
 
 from .batch import Batch, BatchFull
-from fparts import batch
 
 def get_args():
     parser = argparse.ArgumentParser(description="File parting/grouping/renaming tool (like fpart): all you need for grouping and sorting files")
