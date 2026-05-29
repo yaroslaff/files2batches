@@ -9,10 +9,13 @@ from datetime import datetime
 import exifread
 from collections import namedtuple
 
+from .batch import Batch, BatchFull
+from fparts import batch
+
 def get_args():
     parser = argparse.ArgumentParser(description="File parting/grouping/renaming tool (like fpart): all you need for grouping and sorting files")
     parser.add_argument('paths', nargs='+', help='Paths to files or directories to process')
-    parser.add_argument('-g', '--group-size', type=str, default="100", help='Number of files per group (default: 100), or give a size in bytes (10M)')    
+    parser.add_argument('-b', '--batch-size', type=str, default="100", help='Number of files per group (default: 100), or give a size in bytes (10M)')    
     parser.add_argument('-s', '--sort-by', choices=['name', 'size', 'date'], default='name', help='Sort files by name, size, or modification time (default: name)')
     parser.add_argument('-d', '--datesource', type=str, default='mnf', 
                         help='source of date/time m: media info (e.g. for mp4 creation time), n: file name (e.g. YYYYMMDD), f: file modification time (default: mnf)')
@@ -21,10 +24,11 @@ def get_args():
 
     g = parser.add_argument_group('Output options')
     g.add_argument('--move', action='store_true', help='Move files to group directories instead of copying')
-    g.add_argument('-o', '--output', default='output-NNN', help='Output directory for the groups (default: output-NNN). NNN will be replaced with group number')
-    g.add_argument('-n', '--name', default=None, help='Rename files in groups to a common name with an index (e.g. -n file-NNN.ext)')
+    g.add_argument('-o', '--output', default='batch-', help='Output directory for the groups (default: output-NNN). NNN will be replaced with group number')
+    g.add_argument('-n', '--name', default=None, help='If given, rename files in groups to a common format (use this prefix, index, same extension, e.g. -n image-)')
     g.add_argument('-c', '--continuous', action='store_true', help='Use continuous numbering across groups when renaming files (with -n)')
     g.add_argument('--dry', '--dry-run', action='store_true', help='Show what would be done without actually moving/copying files')
+    g.add_argument('-z', '--zeroes', type=int, default=3, help='Number of leading zeros for batch numbers (default: 3)')
 
     return parser.parse_args()
 
@@ -60,16 +64,6 @@ def get_mp4_created(file):
     except Exception as e:
         print(f"Warning: Could not get creation time for {file}: {e}")
         return None
-
-
-def get_exif_date_PIL(file):
-    img = Image.open(file)
-    exif_data = img._getexif()
-    if exif_data:
-        date_str = exif_data.get(36867)  # DateTimeOriginal tag
-        print(f"EXIF date for {file}: {date_str}")
-        if date_str:
-            return datetime.strptime(date_str, "%Y:%m:%d %H:%M:%S")
 
 def get_exif_date_exifread(file):
     with open(file, 'rb') as f:
@@ -131,15 +125,59 @@ def sort_files(all_files, datesource='mnf', sort_by='name', reverse=False):
         except Exception as e:
             print(f"Warning: Could not access file {file}: {e}")
 
+    print(f"sort. rev: {reverse}, by: {sort_by}, date source: {datesource}")
     return sorted(files_metrics, key=lambda x: x.metric, reverse=reverse)
 
+
+
+def process_file(file_info: tuple, output: str, zeroes: int, move:bool, rename_pattern=None, batch_index=1, file_index=1, dry_run=False):
+
+    output_dir = f'{output}{batch_index:0{zeroes}d}'
+    os.makedirs(output_dir, exist_ok=True)
+
+    if rename_pattern:
+        _, ext = os.path.splitext(file_info.basename)
+        new_name = f'{rename_pattern}{file_index:0{zeroes}d}{ext}'
+    else:
+        new_name = file_info.basename
+    src = file_info.fullpath
+    dst = os.path.join(output_dir, new_name)    
+    if dry_run:
+        print(f"Would {'move' if move else 'copy'} {src} to {dst}")
+    else:
+        if move:
+            print(f"Moving {src} to {dst}")
+            os.rename(src, dst)
+        else:
+            print(f"Copying {src} to {dst}")
+            subprocess.run(['cp', src, dst], check=True)
+
+
+
 def main():
-    args = get_args()
+    args = get_args()    
+    
     files = read_filelist(args.paths, args.recursive)
     files_metrics = sort_files(files, args.datesource, args.sort_by, args.reverse)
-    for fm in files_metrics:
-        print(fm)
 
+
+
+    batch = Batch(args.batch_size)
+    for fm in files_metrics:
+        try:
+            batch.add_file(fm)
+        except BatchFull:
+            print(f"File {fm.relpath} could not be added to batch {batch.index}")
+            for idx, f in enumerate(batch):                
+                process_file(f, args.output, args.zeroes, args.move, args.name, batch_index=batch.index, file_index=idx+1, dry_run=args.dry)
+
+            batch = Batch(args.batch_size)
+            batch.add_file(fm)
+
+    # process remaining files in the last batch
+    
+    for idx, f in enumerate(batch):        
+        process_file(f, args.output, args.zeroes, args.move, args.name, batch_index=batch.index, file_index=idx+1, dry_run=args.dry)            
 
 if __name__ == '__main__':
     main()
